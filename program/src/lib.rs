@@ -15,12 +15,12 @@ use state_interface::{
 
 #[derive(BorshDeserialize, BorshSerialize)]
 enum MyInstruction {
-    CreateUsingV1(JoeTokenV1),
-    CreateUsingV2(JoeTokenV2),
-    CreateUsingV3(JoeTokenV3),
-    ReadUsingV1,
-    ReadUsingV2,
-    ReadUsingV3,
+    CreateTokenV1(JoeTokenV1),
+    CreateTokenV2(JoeTokenV2),
+    CreateTokenV3(JoeTokenV3),
+    ReadTokenV1,
+    ReadTokenV2,
+    ReadTokenV3,
 }
 
 pub fn process_instruction(
@@ -31,31 +31,31 @@ pub fn process_instruction(
     let instruction = MyInstruction::try_from_slice(input)?;
 
     match instruction {
-        MyInstruction::CreateUsingV1(data) => {
+        MyInstruction::CreateTokenV1(data) => {
             let accounts_iter = &mut accounts.iter();
             let new_account = next_account_info(accounts_iter)?;
             let payer = next_account_info(accounts_iter)?;
             let system_program = next_account_info(accounts_iter)?;
             create_pda(new_account, payer, system_program, program_id, data)
         }
-        MyInstruction::CreateUsingV2(data) => {
+        MyInstruction::CreateTokenV2(data) => {
             let accounts_iter = &mut accounts.iter();
             let new_account = next_account_info(accounts_iter)?;
             let payer = next_account_info(accounts_iter)?;
             let system_program = next_account_info(accounts_iter)?;
             create_pda(new_account, payer, system_program, program_id, data)
         }
-        MyInstruction::CreateUsingV3(data) => {
+        MyInstruction::CreateTokenV3(data) => {
             let accounts_iter = &mut accounts.iter();
             let new_account = next_account_info(accounts_iter)?;
             let payer = next_account_info(accounts_iter)?;
             let system_program = next_account_info(accounts_iter)?;
             create_pda(new_account, payer, system_program, program_id, data)
         }
-        MyInstruction::ReadUsingV1 => {
+        MyInstruction::ReadTokenV1 => {
             let accounts_iter = &mut accounts.iter();
             let account = next_account_info(accounts_iter)?;
-            msg!("Now Using V1");
+            msg!("** Token V1 **");
 
             // Unpack the account data according to your struct
             let token_data = JoeTokenV1::try_from_slice(&account.data.borrow())?;
@@ -71,10 +71,10 @@ pub fn process_instruction(
                 token_data.organization,
             )
         }
-        MyInstruction::ReadUsingV2 => {
+        MyInstruction::ReadTokenV2 => {
             let accounts_iter = &mut accounts.iter();
             let account = next_account_info(accounts_iter)?;
-            msg!("Now Using V2");
+            msg!("** Token V2 **");
 
             // Unpack the account data according to your struct
             let token_data = JoeTokenV2::try_from_slice(&account.data.borrow())?;
@@ -90,10 +90,10 @@ pub fn process_instruction(
                 token_data.organization,
             )
         }
-        MyInstruction::ReadUsingV3 => {
+        MyInstruction::ReadTokenV3 => {
             let accounts_iter = &mut accounts.iter();
             let account = next_account_info(accounts_iter)?;
-            msg!("Now Using V3");
+            msg!("** Token V3 **");
 
             // Unpack the account data according to your struct
             let token_data = JoeTokenV1::try_from_slice(&account.data.borrow())?;

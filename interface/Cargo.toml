@@ -9,3 +9,4 @@ mpl-token-metadata = "1.9.1"
 solana-program = "1.15.2"
 spl-token = "3.5.0"
 state-interface-derive = { path = "./derive", version = "0.1.0" }
+state-interface-syn = { path = "./syn", version = "0.1.0" }
