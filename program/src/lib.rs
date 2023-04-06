@@ -151,7 +151,7 @@ pub struct JoeTokenV3 {
 
 //
 
-trait Pda: BorshDeserialize {
+trait Pda: BorshSerialize {
     fn span(&self) -> usize {
         (self.try_to_vec()?).len()
     }
