@@ -1,0 +1,11 @@
+[package]
+name = "state-interface"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+borsh = "0.10.3"
+mpl-token-metadata = "1.9.1"
+solana-program = "1.15.2"
+spl-token = "3.5.0"
+state-interface-derive = { path = "./derive", version = "0.1.0" }
