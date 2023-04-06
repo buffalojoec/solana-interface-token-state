@@ -3,8 +3,10 @@ use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
     msg,
+    program::invoke_signed,
     program_option::COption,
     pubkey::Pubkey,
+    system_instruction,
 };
 use state_interface::{
     metadata::MetadataInterface, mint::MintInterface, state_interface_v2, Metadata, Mint,
@@ -13,9 +15,12 @@ use state_interface::{
 
 #[derive(BorshDeserialize, BorshSerialize)]
 enum MyInstruction {
-    UseV1,
-    UseV2,
-    UseV3,
+    CreateUsingV1(JoeTokenV1),
+    CreateUsingV2(JoeTokenV2),
+    CreateUsingV3(JoeTokenV3),
+    ReadUsingV1,
+    ReadUsingV2,
+    ReadUsingV3,
 }
 
 pub fn process_instruction(
@@ -25,11 +30,31 @@ pub fn process_instruction(
 ) -> ProgramResult {
     let instruction = MyInstruction::try_from_slice(input)?;
 
-    let accounts_iter = &mut accounts.iter();
-    let account = next_account_info(accounts_iter)?;
-
     match instruction {
-        MyInstruction::UseV1 => {
+        MyInstruction::CreateUsingV1(data) => {
+            let accounts_iter = &mut accounts.iter();
+            let new_account = next_account_info(accounts_iter)?;
+            let payer = next_account_info(accounts_iter)?;
+            let system_program = next_account_info(accounts_iter)?;
+            create_pda(new_account, payer, system_program, program_id, data)
+        }
+        MyInstruction::CreateUsingV2(data) => {
+            let accounts_iter = &mut accounts.iter();
+            let new_account = next_account_info(accounts_iter)?;
+            let payer = next_account_info(accounts_iter)?;
+            let system_program = next_account_info(accounts_iter)?;
+            create_pda(new_account, payer, system_program, program_id, data)
+        }
+        MyInstruction::CreateUsingV3(data) => {
+            let accounts_iter = &mut accounts.iter();
+            let new_account = next_account_info(accounts_iter)?;
+            let payer = next_account_info(accounts_iter)?;
+            let system_program = next_account_info(accounts_iter)?;
+            create_pda(new_account, payer, system_program, program_id, data)
+        }
+        MyInstruction::ReadUsingV1 => {
+            let accounts_iter = &mut accounts.iter();
+            let account = next_account_info(accounts_iter)?;
             msg!("Now Using V1");
 
             // Unpack the account data according to your struct
@@ -46,7 +71,9 @@ pub fn process_instruction(
                 token_data.organization,
             )
         }
-        MyInstruction::UseV2 => {
+        MyInstruction::ReadUsingV2 => {
+            let accounts_iter = &mut accounts.iter();
+            let account = next_account_info(accounts_iter)?;
             msg!("Now Using V2");
 
             // Unpack the account data according to your struct
@@ -63,7 +90,9 @@ pub fn process_instruction(
                 token_data.organization,
             )
         }
-        MyInstruction::UseV3 => {
+        MyInstruction::ReadUsingV3 => {
+            let accounts_iter = &mut accounts.iter();
+            let account = next_account_info(accounts_iter)?;
             msg!("Now Using V3");
 
             // Unpack the account data according to your struct
@@ -118,6 +147,55 @@ pub struct JoeTokenV3 {
     pub slot_created: u64,
     pub largest_mint: u64,
     pub organization: String,
+}
+
+//
+
+trait Pda: BorshDeserialize {
+    fn span(&self) -> usize {
+        (self.try_to_vec()?).len()
+    }
+    fn size(&self) -> u64 {
+        self.span().try_into().unwrap()
+    }
+    fn required_rent(&self) -> Result<u64, solana_program::program_error::ProgramError> {
+        use solana_program::sysvar::Sysvar;
+        Ok((solana_program::sysvar::rent::Rent::get().unwrap()).minimum_balance(self.span()))
+    }
+    fn seeds(&self) -> [&[u8]; 1];
+    fn pda(&self, program_id: &Pubkey) -> (Pubkey, u8) {
+        Pubkey::find_program_address(&self.seeds(), program_id)
+    }
+}
+
+impl Pda for JoeTokenV1 {}
+impl Pda for JoeTokenV2 {}
+impl Pda for JoeTokenV3 {}
+
+//
+
+pub fn create_pda<'a, T: Pda>(
+    new_account: AccountInfo<'a>,
+    payer: AccountInfo<'a>,
+    system_program: AccountInfo<'a>,
+    program_id: &Pubkey,
+    data: T,
+) -> ProgramResult {
+    let (_, bump) = data.pda(program_id);
+    let seeds = data.seeds();
+    invoke_signed(
+        &system_instruction::create_account(
+            payer.key(),
+            new_account.key(),
+            new_account.required_rent()?,
+            new_account.size(),
+            program_id,
+        ),
+        &[payer.into(), new_account.clone().into(), *system_program],
+        &[&seeds, &[&[bump]]],
+    )?;
+    data.serialize(&mut &mut new_account.data.borrow_mut()[..])?;
+    Ok(())
 }
 
 //
