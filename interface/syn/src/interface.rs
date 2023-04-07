@@ -118,8 +118,8 @@ impl ImplementedInterface {
 
     pub fn to_src_interface_tokens(&self) -> TokenStream {
         match self {
-            ImplementedInterface::Metadata => quote! { Interface::Metadata },
-            ImplementedInterface::Mint => quote! { Interface::Mint },
+            ImplementedInterface::Metadata => quote! { state_interface::Interface::Metadata },
+            ImplementedInterface::Mint => quote! { state_interface::Interface::Mint },
         }
     }
 }

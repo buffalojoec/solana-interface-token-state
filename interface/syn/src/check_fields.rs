@@ -11,7 +11,7 @@ pub fn check_fields(defined_fields: &Fields, required_fields: Vec<Field>) -> Res
                 }
             }
         }
-        _ => return Err("The struct must have named fields".to_string()),
+        _ => return Err("Error: The struct must have named fields".to_string()),
     }
 
     for required_field in required_fields {
@@ -21,13 +21,13 @@ pub fn check_fields(defined_fields: &Fields, required_fields: Vec<Field>) -> Res
                 Some(defined_field_type) => {
                     if **defined_field_type != required_field.ty {
                         return Err(format!(
-                            "Field '{}' has an incorrect type. Expected {:?}, found {:?}",
+                            "Error: Field '{}' has an incorrect type. Expected {:?}, found {:?}",
                             field_name, required_field.ty, defined_field_type
                         ));
                     }
                 }
                 None => {
-                    return Err(format!("Field '{}' is missing", field_name));
+                    return Err(format!("Error: Field '{}' is missing", field_name));
                 }
             }
         }
