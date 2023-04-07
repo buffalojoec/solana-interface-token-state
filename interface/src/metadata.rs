@@ -2,10 +2,10 @@ use mpl_token_metadata::state::TokenMetadataAccount;
 use solana_program::{program_error::ProgramError, program_option::COption, pubkey::Pubkey};
 
 pub trait MetadataInterface {
-    fn title(&self) -> String;
-    fn symbol(&self) -> String;
-    fn uri(&self) -> String;
-    fn update_authority(&self) -> COption<Pubkey>;
+    fn title(&self) -> &String;
+    fn symbol(&self) -> &String;
+    fn uri(&self) -> &String;
+    fn update_authority(&self) -> Pubkey;
 }
 
 pub trait MetadataInterfacePack<'a>
@@ -26,19 +26,19 @@ where
         discrim
     }
 
-    fn unpack_metadata(
-        input: &[u8],
-    ) -> Result<Option<mpl_token_metadata::state::Metadata>, ProgramError> {
+    fn unpack_metadata(input: &[u8]) -> Result<mpl_token_metadata::state::Metadata, ProgramError> {
         let discrim = &Self::discriminator_slice();
         match input
             .windows(discrim.len())
             .find(|&window| window == discrim)
             .map(|match_start| &input[match_start.len()..])
         {
-            Some(metadata_buffer) => Ok(Some(
-                mpl_token_metadata::state::Metadata::safe_deserialize(metadata_buffer)?,
+            Some(metadata_buffer) => Ok(mpl_token_metadata::state::Metadata::safe_deserialize(
+                metadata_buffer,
+            )?),
+            None => Err(ProgramError::BorshIoError(
+                "Error: Failed to unpack Metadata data from this account.".to_string(),
             )),
-            None => Ok(None),
         }
     }
 

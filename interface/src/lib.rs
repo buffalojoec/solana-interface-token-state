@@ -1,32 +1,26 @@
 pub use mpl_token_metadata::state::{
-    Collection, CollectionDetails, Data, Key, Metadata, ProgrammableConfig, TokenStandard,
+    Collection, CollectionDetails, Data, Key, Metadata, ProgrammableConfig, TokenStandard, Uses,
 };
 use solana_program::program_error::ProgramError;
 pub use spl_token::state::Mint;
 pub use state_interface_derive::*;
-use state_interface_syn::interface::ImplementedInterface;
 
 pub mod metadata;
 pub mod mint;
 
+pub use metadata::{MetadataInterface, MetadataInterfacePack};
+pub use mint::{MintInterface, MintInterfacePack};
+
 pub enum Interface {
     Metadata,
     Mint,
-}
-
-impl From<&ImplementedInterface> for Interface {
-    fn from(value: &ImplementedInterface) -> Self {
-        match value {
-            ImplementedInterface::Metadata => Interface::Metadata,
-            ImplementedInterface::Mint => Interface::Mint,
-        }
-    }
+    None,
 }
 
 pub trait InterfacePack<'a>: Sized {
-    const IMPLEMENTED_INTERFACES: Vec<Interface>;
+    const IMPLEMENTED_INTERFACES: [Interface; 2];
 
-    fn unpack(input: &[u8]) -> Result<Option<Self>, ProgramError> {
+    fn unpack(buf: &[u8]) -> Result<Self, ProgramError> {
         for interface in Self::IMPLEMENTED_INTERFACES {
             // This trait might not work.
             // We need to, for each interface implemented, unpack that struct,
@@ -36,10 +30,10 @@ pub trait InterfacePack<'a>: Sized {
             // Then return the entire data structure.
             ()
         }
-        Ok(None)
+        todo!()
     }
 
-    fn pack(&'a self, buf: &mut [u8]) -> Result<(), ProgramError> {
+    fn pack<W: std::io::Write>(&'a self, writer: &mut W) -> Result<(), ProgramError> {
         for interface in Self::IMPLEMENTED_INTERFACES {
             // This one should work.
             // We need to, for each interface implemented, pack the fields from the

@@ -2,7 +2,9 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse::Parse, ItemStruct};
 
-use crate::{impl_trait::impl_borsh, interface::ImplementedInterface, parser::parse_attributes};
+use crate::{
+    impl_traits::impl_interface_pack, interface::ImplementedInterface, parser::parse_attributes,
+};
 
 pub struct StateInterfaceItemStructV1 {
     pub item_struct: ItemStruct,
@@ -53,13 +55,14 @@ impl From<&StateInterfaceItemStructV1> for TokenStream {
         value.dedupe();
         let ident = &value.item_struct.ident;
         let fields = &value.item_struct.fields;
-        let _impl_borsh = impl_borsh(&value.item_struct);
+        let impl_interface_pack =
+            impl_interface_pack(&value.item_struct, &value.implemented_interfaces);
         let impl_traits = value.implemented_interfaces.iter().map(|i| {
             i.check_fields(fields);
             i.get_impl_traits(ident)
         });
         quote! {
-            // #impl_borsh
+            #impl_interface_pack
             #(#impl_traits)*
         }
     }

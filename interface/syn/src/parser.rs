@@ -1,4 +1,4 @@
-use syn::ItemStruct;
+use syn::{Attribute, ItemStruct};
 
 use crate::interface::ImplementedInterface;
 
@@ -23,4 +23,21 @@ pub fn parse_attributes(item_struct: &ItemStruct) -> Vec<ImplementedInterface> {
         }
     }
     implemented_interfaces
+}
+
+pub fn filter_out_interface_attributes(attrs: &Vec<Attribute>) -> Vec<&Attribute> {
+    attrs
+        .iter()
+        .filter(|a| {
+            if let Ok(syn::Meta::List(ref meta_list)) = a.parse_meta() {
+                if meta_list.path.is_ident("state_interfaces") {
+                    false
+                } else {
+                    true
+                }
+            } else {
+                true
+            }
+        })
+        .collect()
 }

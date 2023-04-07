@@ -28,15 +28,17 @@ where
         discrim
     }
 
-    fn unpack_mint(input: &[u8]) -> Result<Option<spl_token::state::Mint>, ProgramError> {
+    fn unpack_mint(input: &[u8]) -> Result<spl_token::state::Mint, ProgramError> {
         let discrim = &Self::discriminator_slice();
         match input
             .windows(discrim.len())
             .find(|&window| window == discrim)
             .map(|match_start| &input[match_start.len()..])
         {
-            Some(mint_buffer) => Ok(Some(spl_token::state::Mint::unpack(mint_buffer)?)),
-            None => Ok(None),
+            Some(mint_buffer) => Ok(spl_token::state::Mint::unpack(mint_buffer)?),
+            None => Err(ProgramError::BorshIoError(
+                "Error: Failed to unpack Mint data from this account.".to_string(),
+            )),
         }
     }
 
